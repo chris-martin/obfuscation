@@ -39,14 +39,20 @@
 \begin{onecolabstract}
   \begin{quote}\begin{quote}\begin{quote}
   u can't obfuscate programs
-	\end{quote}\end{quote}\end{quote}
+  \end{quote}\end{quote}\end{quote}
   \vspace{1em}
 \end{onecolabstract}
 ]
 
 \section{Introduction}
 
-obfuscation blows
+\begin{quote}
+``Anyone who has tried to determine what operation is accomplished by someone else's machine language
+program knows that $E$ itself (i.e., what $E$ does) can be hard to infer from an algorithm for $E$.'
+ --- Diffie and Hellman, 1976 \cite{newDirections}
+\end{quote}
+
+%Intuitively, software practitioners know that obfuscating an algorithm
 
 \section{Applications}
 
@@ -64,10 +70,30 @@ Convert any public key system into a homomorphic system
 Random oracles (I don't understand this one).
 
 Convert any symmetric encryption into asymmetric encryption.
-Original DH paper mentioned a hope that this was possible
-(maybe quote that paper for fun?)
+\cite{newDirections} suggested using obfuscation for public key cryptography.
 
-\section{Rambling}
+\section{Virtual black box}
+
+The ``virtual black box'' property gives a strong definition of the hiding behavior we would desire in an obfuscator.
+An adversary with an obfuscated program can, of course, execute it, which provides the same power as oracle access.
+We would like this to be the full extent of the adversary's power; it should not be able to discern any additional
+information by inspecting the obfuscated code.
+
+It is not immediately obvious how to formalize the notion of \textit{any additional information} ---
+What properties of the original program need to be hidden?
+\cite{onThe(Im)possibility} proves that regardless of how this question is answered,
+a general obfuscator is unattainable.
+
+
+
+The most lenient answer we can give, resulting in the weakest definition of obfuscation, is to merely
+require the obfuscator to hide the value of \textit{any} predicate of the original program.
+
+%
+
+%this notion as follows:
+
+
 
 \section{Impossibility}
 
