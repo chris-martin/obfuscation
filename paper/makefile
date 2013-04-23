@@ -1,15 +1,6 @@
-MAIN=paper
-BIB=$(MAIN)
-LATEX=latexmk -pdf
+paper.pdf: paper.tex paper.bib
+	pdflatex paper
+	bibtex paper
+	pdflatex paper
+	pdflatex paper
 
-$(MAIN).pdf: $(MAIN).tex $(BIB).bib
-	$(LATEX) $(MAIN)
-
-open: $(MAIN).pdf
-	open $(MAIN).pdf
-
-clean:
-	$(LATEX) -C
-
-live:
-	$(LATEX) -pvc $(MAIN) &>/dev/null
