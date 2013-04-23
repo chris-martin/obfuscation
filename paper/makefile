@@ -1,6 +1,3 @@
-paper.pdf: paper.tex paper.bib
-	pdflatex paper
-	bibtex paper
-	pdflatex paper
-	pdflatex paper
+live:
+	latexmk -pdf -pvc
 
