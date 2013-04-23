@@ -19,6 +19,9 @@
 \newcommand{\super}[1]{\textsuperscript{#1}}
 \newcommand{\sub}[1]{\textsubscript{#1}}
 \newcommand{\abs}[1]{\ensuremath{\left\vert#1\right\vert}}
+\def\ppt{\textit{PPT}}
+\def\obf{\ensuremath{\mathcal{O}}}
+\def\negl{\text{negl}}
 
 % title
 \title{Algorithm obfuscation}
@@ -74,27 +77,30 @@ Convert any symmetric encryption into asymmetric encryption.
 
 \section{Virtual black box}
 
-The ``virtual black box'' property gives a strong definition of the hiding behavior we would desire in an obfuscator.
-An adversary with an obfuscated program can, of course, execute it, which provides the same power as oracle access.
-We would like this to be the full extent of the adversary's power; it should not be able to discern any additional
-information by inspecting the obfuscated code.
+The ``virtual black box'' property gives a strong definition of the hiding behavior we would desire
+in an obfuscator $\obf$.
+An adversary with an obfuscated program $\obf(M)$ can, of course, execute it, which provides the same
+power as oracle access.
+We would like this to be the full extent of the adversary's power; it should not be able to discern
+any additional information about $M$ by inspecting the obfuscated code.
 
 It is not immediately obvious how to formalize the notion of \textit{any additional information} ---
 What properties of the original program need to be hidden?
 \cite{onThe(Im)possibility} proves that regardless of how this question is answered,
 a general obfuscator is unattainable.
+The most lenient answer, resulting in the weakest definition of obfuscation, restricts the discussion
+to predicates $P$. If $\obf$ obfuscates, then an adversary given $\obf(M)$ should have no advantage
+at determining $P(M)$ over any algorithm given oracle access to $M$ (in other words, an algorithm
+that runs $\obf(M)$ as a black box without inspecting it).
 
+Formally: $\obf$ has the black box property iff for any $\ppt$ adversary $A$,
+$\exists$ a $\ppt$ simulator $S$ such that
+$\forall$ Turing machines $M$,
+$S$ simulates the output of $A(\obf(M))$ using only oracle access to $M$:
+\[ \abs{ \Pr[ A(\obf(M)) = 1 ] - \Pr[ S^M(1^\abs{M}) = 1 ] } = \negl(\abs{M}) \]
 
-
-The most lenient answer we can give, resulting in the weakest definition of obfuscation, is to merely
-require the obfuscator to hide the value of \textit{any} predicate of the original program.
-
-%
-
-%this notion as follows:
-
-
-
+This means that every predicate $P(M)$ either can be determined by using $\obf(M)$ as a black box
+or cannot be determined from $\obf(M)$ at all.
 \section{Impossibility}
 
 seriously
