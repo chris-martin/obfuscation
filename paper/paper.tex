@@ -8,6 +8,7 @@
 \usepackage{hyperref}
 \usepackage{microtype}
 \usepackage{amsmath}
+\usepackage{amssymb}
 \usepackage[symbol]{footmisc}
 
 \nonstopmode
@@ -30,6 +31,7 @@
 \def\poly{\text{poly}}
 \def\cind{{\ensuremath{\stackrel{c}{\approx}}}}
 \def\Adv{\text{Adv}}
+\def\qed{\hfill \ensuremath{\square}}
 
 % title
 \title{Algorithm obfuscation}
@@ -132,13 +134,13 @@
     \end{align*}
 
     \addtocounter{footnote}{-1}
-
     \footnotetext{
       $D$ is not computable in polytime because the runtime of $C$ may be superpolynomial.
       To work around this problem, we actually define $D$ such that it outputs $\zero$ if $C$
       does not halt within some $\poly(n)$ steps.
     }
 
+    \addtocounter{footnote}{1}
     \footnotetext{
       \cite{onThe(Im)possibility} defines $G_{\alpha,\beta}$ as $Z\#C_{\alpha,\beta}$, but I believe this is an error.
     }
@@ -161,12 +163,13 @@
                    \>                \> $\abs{ \Pr[ A(\obf(G_{\alpha,\beta})) ] - \Pr[ S^{G_{\alpha,\beta}}(1^n) ] }$\;\;) \\[5pt]
                    \> $\ge \frac{1}{2} - \negl(n)$ .
     \end{tabbing}
-    This violates the black-box property and contradicts the assumption that $\obf$ is an obfuscator.
+    This violates the black-box property, contradicting the assumption that $\obf$ is an obfuscator. \qed
 
     \section{Circuit obfuscators do not exist}
 
-    The proof in \cite{onThe(Im)possibility} of the impossibility of black-box obfuscation
-    is given by demonstrating the existence of an \textit{unobfuscatable circuit ensemble}
+    \cite{onThe(Im)possibility} procedes to extend this result to show that black-box obfuscation is
+    impossible even when we consider only the set of algorithms with efficient circuits.
+    This is proven by demonstrating the existence of an \textit{unobfuscatable circuit ensemble}
     with the following properties:%
 
     \begin{enumerate}
@@ -181,6 +184,9 @@
     then $A$ can compute $P(C)$ from $\obf(C)$ by inverting the obfuscation to compute $C$ and then applying $\pi$.
     But $S^C$ cannot compute $P(C)$ with probability $\ge \frac{1}{2}+\negl(\cdot)$,
     because $\pi(C)$ is pseudorandom given oracle access to $C$.
+
+    Proof for this fact is elided here, but one is given by \cite{onThe(Im)possibility}
+    which is similar to (but a bit lengthier than) the proof for Turing machines.
 
   \section{Point functions}
 
