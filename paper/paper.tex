@@ -62,8 +62,9 @@
 
     \begin{quote}
       ``Anyone who has tried to determine what operation is accomplished by someone else's machine language
-      program knows that $E$ itself (i.e., what $E$ does) can be hard to infer from an algorithm for $E$.'
-       --- Diffie and Hellman, 1976 \cite{newDirections}
+      program knows that $E$ itself (i.e., what $E$ does) can be hard to infer from an algorithm for $E$.''
+
+      \hfill --- Diffie and Hellman, 1976 \cite{newDirections}
     \end{quote}
 
     %Intuitively, software practitioners know that obfuscating an algorithm
@@ -117,7 +118,15 @@
 
   \section{Turing machine obfuscators do not exist}
 
-    Preliminarily, \cite{onThe(Im)possibility} introduces a simple way to compose Turing machines.
+    \cite{onThe(Im)possibility} defines a TM obfuscator as a $\ppt$ algorithm $\obf$ that has
+    the black-box property as well as two additional conditions pertaining to correctness:
+    \begin{enumerate}
+      \item Functionality: $M$ and $\obf(M)$ compute the same function.
+      \item Efficiency: The description length and running time of $\obf(M)$
+            are at most polynomially larger than those of $M$.
+    \end{enumerate}
+
+    Preliminarily, we need to introduce a simple way to compose Turing machines:
     For TMs $f_0$ and $f_1$, their \textit{combination}, denoted by $f_0\#f_1$, is defined such that
     $(f_0\#f_1)(b,x) \equiv f_b(x)$.\footnote{Composition and decomposition of combined TMs can be performed
     efficiently, and the transformation approximately preserves running time of the TMs.}
@@ -159,8 +168,8 @@
 
     Therefore $\Adv_\obf(A)$
     \begin{tabbing}
-      \hspace{2em} \= $\ge \max(\;\; \= $\abs{ \Pr[ A(\obf(F_{\alpha,\beta})) ] - \Pr[ S^{F_{\alpha,\beta}}(1^n) ] }$\,, \\[5pt]
-                   \>                \> $\abs{ \Pr[ A(\obf(G_{\alpha,\beta})) ] - \Pr[ S^{G_{\alpha,\beta}}(1^n) ] }$\;\;) \\[5pt]
+      \hspace{2em} \= $\ge \max(\;\;$ \= $\abs{ \Pr[ A(\obf(F_{\alpha,\beta})) ] - \Pr[ S^{F_{\alpha,\beta}}(1^n) ] }$\,, \\[5pt]
+                   \>                 \> $\abs{ \Pr[ A(\obf(G_{\alpha,\beta})) ] - \Pr[ S^{G_{\alpha,\beta}}(1^n) ] }$\;\;) \\[5pt]
                    \> $\ge \frac{1}{2} - \negl(n)$ .
     \end{tabbing}
     This violates the black-box property, contradicting the assumption that $\obf$ is an obfuscator. \qed
