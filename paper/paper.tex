@@ -8,6 +8,7 @@
 \usepackage{hyperref}
 \usepackage{microtype}
 \usepackage{amsmath}
+\usepackage[symbol]{footmisc}
 
 \nonstopmode
 
@@ -26,6 +27,7 @@
 \def\ppt{\textit{PPT}}
 \def\obf{\ensuremath{\mathcal{O}}}
 \def\negl{\text{negl}}
+\def\poly{\text{poly}}
 \def\cind{{\ensuremath{\stackrel{c}{\approx}}}}
 \def\Adv{\text{Adv}}
 
@@ -41,108 +43,150 @@
 
 % document
 \begin{document}
-\thispagestyle{empty}
 
-\twocolumn[
-\maketitle
-\begin{onecolabstract}
-  \begin{quote}\begin{quote}\begin{quote}
-  u can't obfuscate programs
-  \end{quote}\end{quote}\end{quote}
-  \vspace{1em}
-\end{onecolabstract}
-]
+  \thispagestyle{empty}
 
-\section{Introduction}
+  \twocolumn[
+  \maketitle
+  \begin{onecolabstract}
+    \begin{quote}\begin{quote}\begin{quote}
+    u can't obfuscate programs
+    \end{quote}\end{quote}\end{quote}
+    \vspace{1em}
+  \end{onecolabstract}
+  ]
 
-\begin{quote}
-``Anyone who has tried to determine what operation is accomplished by someone else's machine language
-program knows that $E$ itself (i.e., what $E$ does) can be hard to infer from an algorithm for $E$.'
- --- Diffie and Hellman, 1976 \cite{newDirections}
-\end{quote}
+  \section{Introduction}
 
-%Intuitively, software practitioners know that obfuscating an algorithm
+    \begin{quote}
+      ``Anyone who has tried to determine what operation is accomplished by someone else's machine language
+      program knows that $E$ itself (i.e., what $E$ does) can be hard to infer from an algorithm for $E$.'
+       --- Diffie and Hellman, 1976 \cite{newDirections}
+    \end{quote}
 
-\section{Applications}
+    %Intuitively, software practitioners know that obfuscating an algorithm
 
-From \cite{onThe(Im)possibility}:
+  \section{Applications}
 
-Protection from reverse engineering.
+    From \cite{onThe(Im)possibility}:
 
-Watermarking software (cites ``cf., [CT, NSS]'') -
-software vendor adds some behavior to uniquely identify the
-customer, and makes it hard to remove.
+    Protection from reverse engineering.
 
-Convert any public key system into a homomorphic system
-(write an algorithm that uses the private key, then obfuscate it).
+    Watermarking software (cites ``cf., [CT, NSS]'') -
+    software vendor adds some behavior to uniquely identify the
+    customer, and makes it hard to remove.
 
-Random oracles (I don't understand this one).
+    Convert any public key system into a homomorphic system
+    (write an algorithm that uses the private key, then obfuscate it).
 
-Convert any symmetric encryption into asymmetric encryption.
-\cite{newDirections} suggested using obfuscation for public key cryptography.
+    Random oracles (I don't understand this one).
 
-\section{Virtual black box}
+    Convert any symmetric encryption into asymmetric encryption.
+    \cite{newDirections} suggested using obfuscation for public key cryptography.
 
-The ``virtual black box'' property gives a strong definition of the hiding behavior we would desire
-in an obfuscator $\obf$.
-An adversary with an obfuscated program $\obf(M)$ can, of course, execute it, which provides the same
-power as oracle access.
-We would like this to be the full extent of the adversary's power; it should not be able to discern
-any additional information about $M$ by inspecting the obfuscated code.
+  \section{Virtual black box}
 
-It is not immediately obvious how to formalize the notion of \textit{any additional information} ---
-What properties of the original program need to be hidden?
-\cite{onThe(Im)possibility} proves that regardless of how this question is answered,
-a general obfuscator is unattainable.
-The most lenient answer, resulting in the weakest definition of obfuscation, restricts the discussion
-to predicates $P(\cdot)$. If $\obf$ obfuscates, then an adversary given $\obf(M)$ should have no advantage
-at determining $P(M)$ over any algorithm given oracle access to $M$ (in other words, an algorithm
-that runs $\obf(M)$ as a black box without inspecting it).
+    The ``virtual black box'' property gives a strong definition of the hiding behavior we would desire
+    in an obfuscator $\obf$.
+    An adversary with an obfuscated program $\obf(M)$ can, of course, execute it, which provides the same
+    power as oracle access.
+    We would like this to be the full extent of the adversary's power; it should not be able to discern
+    any additional information about $M$ by inspecting the obfuscated code.
 
-Formally, define the advantage of a $\ppt$ adversary $A$ against an obfuscator $\obf$ as $\Adv_\obf(A) =$
-\[ \min_S \max_M \abs{ \Pr[ A(\obf(M)) = 1 ] - \Pr[ S^M(1^n) = 1 ] } \]
-where $S$ is a $\ppt$ algorithm and $M$ is a Turing machine with size bounded by an implicit security parameter $n$.
+    It is not immediately obvious how to formalize the notion of \textit{any additional information} ---
+    What properties of the original program need to be hidden?
+    \cite{onThe(Im)possibility} proves that regardless of how this question is answered,
+    a general obfuscator is unattainable.
+    The most lenient answer, resulting in the weakest definition of obfuscation, restricts the discussion
+    to predicates $P(\cdot)$. If $\obf$ obfuscates, then an adversary given $\obf(M)$ should have no advantage
+    at determining $P(M)$ over any algorithm given oracle access to $M$ (in other words, an algorithm
+    that runs $\obf(M)$ as a black box without inspecting it).
 
-$\obf$ has the black-box property iff $\Adv_\obf(A)$ is a negligible function of $n$,
-which implies that for any adversary $A$, $\exists$ a simulator $S$ such that $\forall$ Turing machines $M$,
-$S$ simulates the output of $A(\obf(M))$ using only oracle access to $M$.
-This means that every predicate $P(M)$ either can be determined by using $\obf(M)$ as a black box
-or cannot be determined from $\obf(M)$ at all.
+    Formally, define the advantage of a $\ppt$ adversary $A$ against an obfuscator $\obf$ as $\Adv_\obf(A) =$
+    \[ \min_S \max_M \abs{ \Pr[ A(\obf(M)) ] - \Pr[ S^M(1^n) ] } \]
+    where $S$ is a $\ppt$ algorithm, $M$ is a Turing machine with size bounded by an implicit security parameter $n$,
+    and the notation ``$A(x)$'' means $A$ accepts (outputs $\one$) on input $x$.
 
-\section{Turing machine obfuscators do not exist}
-\[ C_{\alpha,\beta}(x) & \equiv \begin{cases} \beta & x=\alpha \\ \zero^n  & \text{otherwise} \end{cases} \]
-\[ D_{\alpha, \beta}(C) & \equiv \begin{cases} 1 & C(\alpha) = \beta \\ 0 & \text{otherwise} \end{cases} \]
+    $\obf$ has the black-box property iff $\Adv_\obf(A)$ is a negligible function of $n$,
+    which implies that for any adversary $A$, $\exists$ a simulator $S$ such that $\forall$ Turing machines $M$,
+    $S$ simulates the output of $A(\obf(M))$ using only oracle access to $M$.
+    This means that every predicate $P(M)$ either can be determined by using $\obf(M)$ as a black box
+    or cannot be determined from $\obf(M)$ at all.
 
-\[ Z_n(x) & \equiv \zero^n \]
+  \section{Turing machine obfuscators do not exist}
 
-\begin{align*}
-F_{\alpha, \beta}(b, x) & \equiv \begin{cases} C_{\alpha, \beta}(x) & b = 0 \\ D_{\alpha, \beta}(x) & b = 1 \end{cases} \\
-G_{\alpha, \beta}(b, x) & \equiv \begin{cases} Z_n(x) & b = 0 \\ C_{\alpha, \beta}(x) & b = 1 \end{cases}
-\end{align*}
+    Preliminarily, \cite{onThe(Im)possibility} introduces a simple way to compose Turing machines.
+    For TMs $f_0$ and $f_1$, their \textit{combination}, denoted by $f_0\#f_1$, is defined such that
+    $(f_0\#f_1)(b,x) \equiv f_b(x)$.\footnote{Composition and decomposition of combined TMs can be performed
+    efficiently, and the transformation approximately preserves running time of the TMs.}
 
-\section{Circuit obfuscators do not exist}
+    Assuming the existence of an obfuscator, we can reach a contradiction using the following TMs.
+    For $n$-bit strings $\alpha$ and $\beta$ chosen at random:
+    %
+    \begin{align*}
+      C_{\alpha,\beta}(x) & \equiv \begin{cases} \beta & x=\alpha \\ \zero^n  & \text{otherwise} \end{cases} \\
+      D_{\alpha, \beta}(C) & \equiv \begin{cases} 1 & C(\alpha) = \beta \;\;\;\footnotemark \\ 0 & \text{otherwise} \end{cases} \\
+      Z(\cdot) & \equiv \zero^n \\
+      F_{\alpha, \beta} & \equiv C_{\alpha, \beta} \# D_{\alpha, \beta} \\
+      G_{\alpha, \beta} & \equiv Z \# D_{\alpha, \beta} \;\;\;\footnotemark
+    \end{align*}
 
-The proof in \cite{onThe(Im)possibility} of the impossibility of black-box obfuscation
-is given by demonstrating the existence of an \textit{unobfuscatable circuit ensemble}
-with the following properties:
-\begin{enumerate}
-\item A circuit from the ensemble can be completely reconstructed given any equivalent circuit.
-\item In the average case, a circuit $C$ chosen from the ensemble is difficult to reverse-engineer using an oracle.
-This is shown via the existence of a function $\pi: \text{circuits}\to\bit^*$ such that $\pi(C)\cind U$
-given oracle access to $C$.
-\end{enumerate}
+    \addtocounter{footnote}{-1}
 
-These two statements imply violation of the black-box property for any $\obf(C)$.
-If we take $P(C)$ to be a predicate such as ``the first bit $\pi(C)$'',
-then $A$ can compute $P(C)$ from $\obf(C)$ by inverting the obfuscation to compute $C$ and then applying $\pi$.
-But $S^C$ cannot compute $P(C)$ with probability $\ge \frac{1}{2}+\negl(\cdot)$,
-because $\pi(C)$ is pseudorandom given oracle access to $C$.
+    \footnotetext{
+      $D$ is not computable in polytime because the runtime of $C$ may be superpolynomial.
+      To work around this problem, we actually define $D$ such that it outputs $\zero$ if $C$
+      does not halt within some $\poly(n)$ steps.
+    }
 
-\section{Point functions}
+    \footnotetext{
+      \cite{onThe(Im)possibility} defines $G_{\alpha,\beta}$ as $Z\#C_{\alpha,\beta}$, but I believe this is an error.
+    }
 
-useless
+    To a simulator with oracle access, $C_{\alpha,\beta}$ is indistinguishable from $Z$,
+    because their outputs are identical on all queries except $\alpha$, which is unknown.
+    Therefore $\forall$ $S$,
+    \[ \abs{\Pr[S^{F_{\alpha,\beta}}] - \Pr[S^{G_{\alpha,\beta}}]} = \negl(n) \;. \]
 
-\bibliographystyle{IEEEtran}
-\bibliography{paper}
+    Define an adversary $A(f_0\#f_1) \equiv f_1(f_0)$.
+    %
+    \begin{align*}
+      A(\obf(F_{\alpha,\beta})) & = D_{\alpha,\beta}(C_{\alpha,\beta}) = 1\\
+      A(\obf(G_{\alpha,\beta})) & = D_{\alpha,\beta}(Z) = 0 & \text{(if $\beta\neq 0$)}
+    \end{align*}
+
+    Therefore $\Adv_\obf(A)$
+    \begin{tabbing}
+      \hspace{2em} \= $\ge \max(\;\; \= $\abs{ \Pr[ A(\obf(F_{\alpha,\beta})) ] - \Pr[ S^{F_{\alpha,\beta}}(1^n) ] }$\,, \\[5pt]
+                   \>                \> $\abs{ \Pr[ A(\obf(G_{\alpha,\beta})) ] - \Pr[ S^{G_{\alpha,\beta}}(1^n) ] }$\;\;) \\[5pt]
+                   \> $\ge \frac{1}{2} - \negl(n)$ .
+    \end{tabbing}
+    This violates the black-box property and contradicts the assumption that $\obf$ is an obfuscator.
+
+    \section{Circuit obfuscators do not exist}
+
+    The proof in \cite{onThe(Im)possibility} of the impossibility of black-box obfuscation
+    is given by demonstrating the existence of an \textit{unobfuscatable circuit ensemble}
+    with the following properties:%
+
+    \begin{enumerate}
+      \item A circuit from the ensemble can be completely reconstructed given any equivalent circuit.
+      \item In the average case, a circuit $C$ chosen from the ensemble is difficult to reverse-engineer using an oracle.
+      This is shown via the existence of a function $\pi: \text{circuits}\to\bit^*$ such that $\pi(C)\cind U$
+      given oracle access to $C$.
+    \end{enumerate}
+
+    These two statements imply violation of the black-box property for any $\obf(C)$.
+    If we take $P(C)$ to be a predicate such as ``the first bit $\pi(C)$'',
+    then $A$ can compute $P(C)$ from $\obf(C)$ by inverting the obfuscation to compute $C$ and then applying $\pi$.
+    But $S^C$ cannot compute $P(C)$ with probability $\ge \frac{1}{2}+\negl(\cdot)$,
+    because $\pi(C)$ is pseudorandom given oracle access to $C$.
+
+  \section{Point functions}
+
+    useless
+
+  \bibliographystyle{IEEEtran}
+  \bibliography{paper}
 
 \end{document}
