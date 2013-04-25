@@ -13,15 +13,21 @@
 
 \hypersetup{hidelinks}
 
-\newcommand{\term}[1]{\textit{#1}}
-\newcommand{\bterm}[1]{\textbf{\textit{#1}}}
-\newcommand{\code}[1]{\texttt{#1}}
-\newcommand{\super}[1]{\textsuperscript{#1}}
-\newcommand{\sub}[1]{\textsubscript{#1}}
-\newcommand{\abs}[1]{\ensuremath{\left\vert#1\right\vert}}
+\newcommand{\term}[1]{{\textit{#1}}}
+\newcommand{\bterm}[1]{{\textbf{\textit{#1}}}}
+\newcommand{\code}[1]{{\texttt{#1}}}
+\newcommand{\super}[1]{{\textsuperscript{#1}}}
+\newcommand{\sub}[1]{{\textsubscript{#1}}}
+\newcommand{\abs}[1]{{\ensuremath{\left\vert#1\right\vert}}}
+\newcommand{\paren}[1]{{\ensuremath{\left(#1\right)}}}
+\def\zero{\texttt{0}}
+\def\one{\texttt{1}}
+\def\bit{{\ensuremath{\{\zero,\one\}}}}
 \def\ppt{\textit{PPT}}
 \def\obf{\ensuremath{\mathcal{O}}}
 \def\negl{\text{negl}}
+\def\cind{{\ensuremath{\stackrel{c}{\approx}}}}
+\def\Adv{\text{Adv}}
 
 % title
 \title{Algorithm obfuscation}
@@ -89,21 +95,48 @@ What properties of the original program need to be hidden?
 \cite{onThe(Im)possibility} proves that regardless of how this question is answered,
 a general obfuscator is unattainable.
 The most lenient answer, resulting in the weakest definition of obfuscation, restricts the discussion
-to predicates $P$. If $\obf$ obfuscates, then an adversary given $\obf(M)$ should have no advantage
+to predicates $P(\cdot)$. If $\obf$ obfuscates, then an adversary given $\obf(M)$ should have no advantage
 at determining $P(M)$ over any algorithm given oracle access to $M$ (in other words, an algorithm
 that runs $\obf(M)$ as a black box without inspecting it).
 
-Formally: $\obf$ has the black box property iff for any $\ppt$ adversary $A$,
-$\exists$ a $\ppt$ simulator $S$ such that
-$\forall$ Turing machines $M$,
-$S$ simulates the output of $A(\obf(M))$ using only oracle access to $M$:
-\[ \abs{ \Pr[ A(\obf(M)) = 1 ] - \Pr[ S^M(1^\abs{M}) = 1 ] } = \negl(\abs{M}) \]
+Formally, define the advantage of a $\ppt$ adversary $A$ against an obfuscator $\obf$ as $\Adv_\obf(A) =$
+\[ \min_S \max_M \abs{ \Pr[ A(\obf(M)) = 1 ] - \Pr[ S^M(1^n) = 1 ] } \]
+where $S$ is a $\ppt$ algorithm and $M$ is a Turing machine with size bounded by an implicit security parameter $n$.
 
+$\obf$ has the black-box property iff $\Adv_\obf(A)$ is a negligible function of $n$,
+which implies that for any adversary $A$, $\exists$ a simulator $S$ such that $\forall$ Turing machines $M$,
+$S$ simulates the output of $A(\obf(M))$ using only oracle access to $M$.
 This means that every predicate $P(M)$ either can be determined by using $\obf(M)$ as a black box
 or cannot be determined from $\obf(M)$ at all.
-\section{Impossibility}
 
-seriously
+\section{Turing machine obfuscators do not exist}
+\[ C_{\alpha,\beta}(x) & \equiv \begin{cases} \beta & x=\alpha \\ \zero^n  & \text{otherwise} \end{cases} \]
+\[ D_{\alpha, \beta}(C) & \equiv \begin{cases} 1 & C(\alpha) = \beta \\ 0 & \text{otherwise} \end{cases} \]
+
+\[ Z_n(x) & \equiv \zero^n \]
+
+\begin{align*}
+F_{\alpha, \beta}(b, x) & \equiv \begin{cases} C_{\alpha, \beta}(x) & b = 0 \\ D_{\alpha, \beta}(x) & b = 1 \end{cases} \\
+G_{\alpha, \beta}(b, x) & \equiv \begin{cases} Z_n(x) & b = 0 \\ C_{\alpha, \beta}(x) & b = 1 \end{cases}
+\end{align*}
+
+\section{Circuit obfuscators do not exist}
+
+The proof in \cite{onThe(Im)possibility} of the impossibility of black-box obfuscation
+is given by demonstrating the existence of an \textit{unobfuscatable circuit ensemble}
+with the following properties:
+\begin{enumerate}
+\item A circuit from the ensemble can be completely reconstructed given any equivalent circuit.
+\item In the average case, a circuit $C$ chosen from the ensemble is difficult to reverse-engineer using an oracle.
+This is shown via the existence of a function $\pi: \text{circuits}\to\bit^*$ such that $\pi(C)\cind U$
+given oracle access to $C$.
+\end{enumerate}
+
+These two statements imply violation of the black-box property for any $\obf(C)$.
+If we take $P(C)$ to be a predicate such as ``the first bit $\pi(C)$'',
+then $A$ can compute $P(C)$ from $\obf(C)$ by inverting the obfuscation to compute $C$ and then applying $\pi$.
+But $S^C$ cannot compute $P(C)$ with probability $\ge \frac{1}{2}+\negl(\cdot)$,
+because $\pi(C)$ is pseudorandom given oracle access to $C$.
 
 \section{Point functions}
 
