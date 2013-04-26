@@ -9,7 +9,7 @@
 \usepackage{microtype}
 \usepackage{amsmath}
 \usepackage{amssymb}
-\usepackage[symbol]{footmisc}
+\usepackage[bottom]{footmisc}
 
 \nonstopmode
 
@@ -32,6 +32,9 @@
 \def\cind{{\ensuremath{\stackrel{c}{\approx}}}}
 \def\Adv{\text{Adv}}
 \def\qed{\hfill \ensuremath{\square}}
+\def\vbb{\textsf{vbb}}
+\def\sbvbb{\textsf{sb-vbb}}
+\def\ssbvbb{\textsf{ssb-vbb}}
 
 % title
 \title{Algorithm obfuscation}
@@ -43,6 +46,10 @@
   \end{tabular}
 }
 
+\renewcommand{\thefootnote}{[\arabic{footnote}]}
+
+% todo - On the Necessity of a Probabilistic Obfuscator - \cite{forCryptoPurposes}
+
 % document
 \begin{document}
 
@@ -52,13 +59,17 @@
   \maketitle
   \begin{onecolabstract}
     \begin{quote}\begin{quote}\begin{quote}
-    u can't obfuscate programs
+      This paper is a brief survey of literature on the topic of obfuscation of algorithms.
+      Can software be mangled in a way that preserves its functionality while hiding its ``secret sauce''?
+      Results describe specific classes of functions which can and cannot be obfuscated.
     \end{quote}\end{quote}\end{quote}
     \vspace{1em}
   \end{onecolabstract}
   ]
 
   \section{Introduction}
+
+    Employing obfuscation in password-based authentication systems is standard practice.
 
     \begin{quote}
       ``Anyone who has tried to determine what operation is accomplished by someone else's machine language
@@ -87,74 +98,123 @@
     Convert any symmetric encryption into asymmetric encryption.
     \cite{newDirections} suggested using obfuscation for public key cryptography.
 
-  \section{Virtual black box}
+  \section{Obfuscator requirements}
 
-    The ``virtual black box'' property gives a strong definition of the hiding behavior we would desire
+  \subsection{Virtual black-box}
+
+    The \textit{virtual black-box} property captures the notion of strong hiding behavior we would desire
     in an obfuscator $\obf$.
     An adversary with an obfuscated program $\obf(M)$ can, of course, execute it, which provides the same
     power as oracle access.
     We would like this to be the full extent of the adversary's power; it should not be able to discern
     any additional information about $M$ by inspecting the obfuscated code.
 
+  \subsubsection{Worst-case}
+
+    \cite{onThe(Im)possibility} uses a black-box definition that is ``worse-case'' in the sense that
+    it requires an obfuscator to be able to obfuscate any input.
+
     It is not immediately obvious how to formalize the notion of \textit{any additional information} ---
     What properties of the original program need to be hidden?
-    \cite{onThe(Im)possibility} proves that regardless of how this question is answered,
+    Section \ref{sec:no-tm-obf} covers the proof that regardless of how this question is answered,
     a general obfuscator is unattainable.
     The most lenient answer, resulting in the weakest definition of obfuscation, restricts the discussion
     to predicates $P(\cdot)$. If $\obf$ obfuscates, then an adversary given $\obf(M)$ should have no advantage
-    at determining $P(M)$ over any algorithm given oracle access to $M$ (in other words, an algorithm
-    that runs $\obf(M)$ as a black box without inspecting it).
+    at determining $P(M)$ over any algorithm given oracle access to $M$ (in other words, an algorithm that runs
+    $\obf(M)$ as if it were implemented within an opaque container with no means of inspecting its contents).
 
-    Formally, define the advantage of a $\ppt$ adversary $A$ against an obfuscator $\obf$ as $\Adv_\obf(A) =$
+    Define the black-box advantage\footnotemark{} of a $\ppt$ adversary $A$ against an obfuscator $\obf$ as $\Adv^\vbb_\obf(A) =$
     \[ \min_S \max_M \abs{ \Pr[ A(\obf(M)) ] - \Pr[ S^M(1^n) ] } \]
-    where $S$ is a $\ppt$ algorithm, $M$ is a Turing machine with size bounded by an implicit security parameter $n$,
+    where $M$ is a Turing machine with size bounded by an implicit security parameter $n$,
+    $S^M$ is a $\ppt$ algorithm with oracle access to the function computed by $M$,
     and the notation ``$A(x)$'' means $A$ accepts (outputs $\one$) on input $x$.
+    \footnotetext{
+      This is my own reformulation of the definition which is given in \cite{onThe(Im)possibility} as:
+      $\forall\;A$ $\exists\;S$ such that $\forall\;M$, $\abs{ \Pr[ A(\obf(M)) ] - \Pr[ S^M(1^n) ] }=\negl(n)$.
+    }
 
-    $\obf$ has the black-box property iff $\Adv_\obf(A)$ is a negligible function of $n$,
-    which implies that for any adversary $A$, $\exists$ a simulator $S$ such that $\forall$ Turing machines $M$,
-    $S$ simulates the output of $A(\obf(M))$ using only oracle access to $M$.
+    $\obf$ has the black-box property iff $\Adv^\vbb_\obf(A)$ is a negligible function of $n$,
+    which implies that for any adversary $A$, $\exists$ $S$ such that $\forall$ Turing machines $M$,
+    $S$ has the same output distribution as $A(\obf(M))$, but using only oracle access to $M$.
     This means that every predicate $P(M)$ either can be determined by using $\obf(M)$ as a black box
     or cannot be determined from $\obf(M)$ at all.
 
-  \section{Turing machine obfuscators do not exist}
+  \subsection{Simulation-based average-case virtual black-box}
 
-    \cite{onThe(Im)possibility} defines a TM obfuscator as a $\ppt$ algorithm $\obf$ that has
-    the black-box property as well as two additional conditions pertaining to correctness:
-    \begin{enumerate}
-      \item Functionality: $M$ and $\obf(M)$ compute the same function.
-      \item Efficiency: The description length and running time of $\obf(M)$
-            are at most polynomially larger than those of $M$.
-    \end{enumerate}
+    \cite{forCryptoPurposes} presents two alternative black-box definitions.
+    These differ from the previous worst-case setup in that an obfuscator is judged based on its
+    average behavior over inputs $M$ chosen from some ensemble $\mathcal{M}$, and in that this
+    formulation is based on simulators for $\obf$.
+
+    The weaker of the two defines $\Adv^\sbvbb_\obf(A) \equiv$
+    \[\min_S \abs{
+      \Pr_{M\gets\mathcal{M}} [ A^{M}(\obf(M)) ] -
+      \Pr_{M\gets\mathcal{M}} [ A^{M}(S^M(\one^n)) ]
+    }\]
+    and the stronger definition requires that $$
+    $\Adv^\ssbvbb_\obf(A) \equiv$
+    \[\min_S \abs{
+      \Pr_{M\gets\mathcal{M}} [ A^{M}(\obf(M)) ] -
+      \Pr_{M\gets\mathcal{M}} [ A^{M}(S^M(\one^n)) ]
+    }\]
+
+  \subsection{Correctness}
+
+    We also need to define how the behavior of $\obf(M)$ relates to that of $M$.
+    \cite{onThe(Im)possibility} gives two candidate definitions of correctness.
+    \begin{itemize}
+
+      \item
+        \textit{Perfect functionality}:
+        $M$ and $\obf(M)$ compute precisely the same function.
+        \cite{onThe(Im)possibility}
+        \[ \forall\;M\;\forall\;x\;(\obf(M))(x) = M(x) \]
+
+      \item
+        \textit{Approximate functionality}:
+        \[ \forall\;M\;\forall\;x\;\Pr_{\obf(M)}[(\obf(M))(x) = M(x)] \ge 1-\negl(\cdot) \;\footnotemark \]
+
+    \end{itemize}
+
+    \footnotetext{
+      Approximate functionality is expressed by \cite{aNoteOn} as
+      $\forall\;M\;\Pr_{\obf(M)}[\forall\;x;(\obf(M))(x) = M(x)] \ge 1-\negl(\cdot)$.
+      It is unclear to me whether the two expressions meaningfully differ.
+    }
+
+    For obfuscation to be useful, we require that the description length and running time
+    of $\obf(M)$ must be at most polynomially larger than those of $M$.
+
+  \section{Turing machine obfuscators do not exist} \label{sec:no-tm-obf}
+
+    \cite{onThe(Im)possibility} defines a TM obfuscator as a $\ppt$ algorithm $\obf$ as having the
+    virtual black-box property, perfect functionality preservation, and polynomial slowdown.
 
     Preliminarily, we need to introduce a simple way to compose Turing machines:
     For TMs $f_0$ and $f_1$, their \textit{combination}, denoted by $f_0\#f_1$, is defined such that
-    $(f_0\#f_1)(b,x) \equiv f_b(x)$.\footnote{Composition and decomposition of combined TMs can be performed
-    efficiently, and the transformation approximately preserves running time of the TMs.}
+    $(f_0\#f_1)(b,x) \equiv f_b(x)$.
+    Note that composition and decomposition of combined TMs can be performed
+    efficiently, and the transformation approximately preserves running time of the TMs.
 
     Assuming the existence of an obfuscator, we can reach a contradiction using the following TMs.
     For $n$-bit strings $\alpha$ and $\beta$ chosen at random:
     %
     \begin{align*}
       C_{\alpha,\beta}(x) & \equiv \begin{cases} \beta & x=\alpha \\ \zero^n  & \text{otherwise} \end{cases} \\
-      D_{\alpha, \beta}(C) & \equiv \begin{cases} 1 & C(\alpha) = \beta \;\;\;\footnotemark \\ 0 & \text{otherwise} \end{cases} \\
+      D_{\alpha, \beta}(C) & \equiv \begin{cases} 1 & C(\alpha) = \beta \\ 0 & \text{otherwise} \end{cases} \\
       Z(\cdot) & \equiv \zero^n \\
       F_{\alpha, \beta} & \equiv C_{\alpha, \beta} \# D_{\alpha, \beta} \\
       G_{\alpha, \beta} & \equiv Z \# D_{\alpha, \beta} \;\;\;\footnotemark
     \end{align*}
-
-    \addtocounter{footnote}{-1}
-    \footnotetext{
-      $D$ is not computable in polytime because the runtime of $C$ may be superpolynomial.
-      To work around this problem, we actually define $D$ such that it outputs $\zero$ if $C$
-      does not halt within some $\poly(n)$ steps.
-    }
-
-    \addtocounter{footnote}{1}
     \footnotetext{
       \cite{onThe(Im)possibility} defines $G_{\alpha,\beta}$ as $Z\#C_{\alpha,\beta}$, but I believe this is an error.
     }
 
-    To a simulator with oracle access, $C_{\alpha,\beta}$ is indistinguishable from $Z$,
+    $D$ is not computable in polytime because the runtime of $C$ may be superpolynomial.
+    To work around this problem, we actually define $D$ such that it outputs $\zero$ if $C$
+    does not halt within some $\poly(n)$ steps.
+
+    To a machine $S$ with oracle access, $C_{\alpha,\beta}$ is indistinguishable from $Z$,
     because their outputs are identical on all queries except $\alpha$, which is unknown.
     Therefore $\forall$ $S$,
     \[ \abs{\Pr[S^{F_{\alpha,\beta}}] - \Pr[S^{G_{\alpha,\beta}}]} = \negl(n) \;. \]
@@ -169,7 +229,7 @@
       Actually $2^{-n}$, but $0$ if we exclude the negligible-probability event $\beta=0$.
     }
 
-    Therefore $\Adv_\obf(A)$
+    Therefore $\Adv^\vbb_\obf(A)$
     \begin{tabbing}
       \hspace{2em} \= $\ge \max(\;\;$ \= $\abs{ \Pr[ A(\obf(F_{\alpha,\beta})) ] - \Pr[ S^{F_{\alpha,\beta}}(1^n) ] }$\,, \\[5pt]
                    \>                 \> $\abs{ \Pr[ A(\obf(G_{\alpha,\beta})) ] - \Pr[ S^{G_{\alpha,\beta}}(1^n) ] }$\;\;) \\[5pt]
@@ -185,10 +245,15 @@
     with the following properties:%
 
     \begin{enumerate}
-      \item A circuit from the ensemble can be completely reconstructed given any equivalent circuit.
-      \item In the average case, a circuit $C$ chosen from the ensemble is difficult to reverse-engineer using an oracle.
-      This is shown via the existence of a function $\pi: \text{circuits}\to\bit^*$ such that $\pi(C)\cind U$
-      given oracle access to $C$.
+
+      \item
+        A circuit from the ensemble can be completely reconstructed given any equivalent circuit.
+
+      \item
+        In the average case, a circuit $C$ chosen from the ensemble is difficult to reverse-engineer using an oracle.
+        This is shown via the existence of a function $\pi: \text{circuits}\to\bit^*$ such that $\pi(C)\cind U$
+        given oracle access to $C$.
+
     \end{enumerate}
 
     These two statements imply violation of the black-box property for any $\obf(C)$.
