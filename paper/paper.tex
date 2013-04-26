@@ -20,7 +20,7 @@
 \newcommand{\code}[1]{{\texttt{#1}}}
 \newcommand{\super}[1]{{\textsuperscript{#1}}}
 \newcommand{\sub}[1]{{\textsubscript{#1}}}
-\newcommand{\abs}[1]{{\ensuremath{\left\vert#1\right\vert}}}
+\newcommand{\abs}[1]{{\ensuremath{\left\vert\,#1\,\right\vert}}}
 \newcommand{\paren}[1]{{\ensuremath{\left(#1\right)}}}
 \def\zero{\texttt{0}}
 \def\one{\texttt{1}}
@@ -48,8 +48,6 @@
 
 \renewcommand{\thefootnote}{[\arabic{footnote}]}
 
-% todo - On the Necessity of a Probabilistic Obfuscator - \cite{forCryptoPurposes}
-
 % document
 \begin{document}
 
@@ -69,8 +67,6 @@
 
   \section{Introduction}
 
-    Employing obfuscation in password-based authentication systems is standard practice.
-
     \begin{quote}
       ``Anyone who has tried to determine what operation is accomplished by someone else's machine language
       program knows that $E$ itself (i.e., what $E$ does) can be hard to infer from an algorithm for $E$.''
@@ -78,27 +74,29 @@
       \hfill --- Diffie and Hellman, 1976 \cite{newDirections}
     \end{quote}
 
-    %Intuitively, software practitioners know that obfuscating an algorithm
+    Software vendors sometimes take heuristic measures to scramble code in some way that makes it
+    difficult for a reader to glean insight into how a program works. Often, intentional obfuscation
+    is not even necessary toward this aim, because it is accomplished inadvertently by a compiler.
+    Since the comprehensibility of software seem to decline without much effort, it is natural to
+    wonder whether the loss of information can be formalized and used advantageously.
 
-  \section{Applications}
+    If such obfuscation were possible, it would have the potential to yield some powerful results in cryptography.
+    \begin{itemize}
 
-    From \cite{onThe(Im)possibility}:
+      \item
+        As \cite{newDirections} speculated, any symmetric encryption scheme could be turned into an asymmetric scheme.
+        We could hard-code the private key into the encryption algorithm and publicize the obfuscated result.
 
-    Protection from reverse engineering.
+      \item
+        Furthermore, \cite{onThe(Im)possibility} suggests that any asymmetric scheme could be used to construct
+        a homomorphic encryption scheme.
+        We could write an algorithm that decrypts ciphertexts, performs some operation upon them, and
+        encrypts the result.
+        If this algorithm could be obfuscated, it could be publicized without leaking the private key.
 
-    Watermarking software (cites ``cf., [CT, NSS]'') -
-    software vendor adds some behavior to uniquely identify the
-    customer, and makes it hard to remove.
+    \end{itemize}
 
-    Convert any public key system into a homomorphic system
-    (write an algorithm that uses the private key, then obfuscate it).
-
-    Random oracles (I don't understand this one).
-
-    Convert any symmetric encryption into asymmetric encryption.
-    \cite{newDirections} suggested using obfuscation for public key cryptography.
-
-  \section{Obfuscator requirements}
+  \section{Definition of obfuscation}
 
   \subsection{Virtual black-box}
 
@@ -109,10 +107,9 @@
     We would like this to be the full extent of the adversary's power; it should not be able to discern
     any additional information about $M$ by inspecting the obfuscated code.
 
-  \subsubsection{Worst-case}
-
-    \cite{onThe(Im)possibility} uses a black-box definition that is ``worse-case'' in the sense that
-    it requires an obfuscator to be able to obfuscate any input.
+    \cite{onThe(Im)possibility} uses a black-box definition that is ``worst-case'' in the sense that
+    it requires an obfuscator to be able to obfuscate any input (in contrast with the approach described
+    in Section \ref{sec:sim-bb} that deals with average-case inputs).
 
     It is not immediately obvious how to formalize the notion of \textit{any additional information} ---
     What properties of the original program need to be hidden?
@@ -120,43 +117,48 @@
     a general obfuscator is unattainable.
     The most lenient answer, resulting in the weakest definition of obfuscation, restricts the discussion
     to predicates $P(\cdot)$. If $\obf$ obfuscates, then an adversary given $\obf(M)$ should have no advantage
-    at determining $P(M)$ over any algorithm given oracle access to $M$ (in other words, an algorithm that runs
-    $\obf(M)$ as if it were implemented within an opaque container with no means of inspecting its contents).
+    at determining $P(M)$ over any algorithm given oracle access to $M$.
+    The adversary, due the convoluted nature of $\obf(M)$, is forced to use the subroutine as if it were
+    implemented within an opaque container with no means of inspecting the contents.
 
-    Define the black-box advantage\footnotemark{} of a $\ppt$ adversary $A$ against an obfuscator $\obf$ as $\Adv^\vbb_\obf(A) =$
-    \[ \min_S \max_M \abs{ \Pr[ A(\obf(M)) ] - \Pr[ S^M(1^n) ] } \]
-    where $M$ is a Turing machine with size bounded by an implicit security parameter $n$,
+    The black-box property is stated as follows:
+    $\forall\;A$ $\exists\;S$ such that $\forall\;M$,
+    \[ \Adv^\vbb_{\obf,A,S,M} \equiv \abs{ \Pr[ A(\obf(M)) ] - \Pr[ S^M(1^n) ] } \]
+    is a negligible function of $n$.
+    $M$ is a Turing machine with size bounded by an implicit security parameter $n$,
     $S^M$ is a $\ppt$ algorithm with oracle access to the function computed by $M$,
     and the notation ``$A(x)$'' means $A$ accepts (outputs $\one$) on input $x$.
-    \footnotetext{
-      This is my own reformulation of the definition which is given in \cite{onThe(Im)possibility} as:
-      $\forall\;A$ $\exists\;S$ such that $\forall\;M$, $\abs{ \Pr[ A(\obf(M)) ] - \Pr[ S^M(1^n) ] }=\negl(n)$.
-    }
 
-    $\obf$ has the black-box property iff $\Adv^\vbb_\obf(A)$ is a negligible function of $n$,
-    which implies that for any adversary $A$, $\exists$ $S$ such that $\forall$ Turing machines $M$,
     $S$ has the same output distribution as $A(\obf(M))$, but using only oracle access to $M$.
     This means that every predicate $P(M)$ either can be determined by using $\obf(M)$ as a black box
     or cannot be determined from $\obf(M)$ at all.
 
-  \subsection{Simulation-based average-case virtual black-box}
+  \subsection{Average-case virtual black-box} \label{sec:sim-bb}
 
     \cite{forCryptoPurposes} presents two alternative black-box definitions.
-    These differ from the previous worst-case setup in that an obfuscator is judged based on its
-    average behavior over inputs $M$ chosen from some ensemble $\mathcal{M}$, and in that this
-    formulation is based on simulators for $\obf$.
+    These differ from the previous setup in that:
+    \begin{itemize}
+      \item
+        An obfuscator is judged based on its average behavior over inputs $M$
+        chosen from some ensemble $\mathcal{M}$.
+      \item
+        This formulation requires the existence of a simulator which uses only oracle access
+        to $M$ to produce an output resembling the distribution $\obf(M)$.
+    \end{itemize}
 
-    The weaker of the two defines $\Adv^\sbvbb_\obf(A) \equiv$
-    \[\min_S \abs{
-      \Pr_{M\gets\mathcal{M}} [ A^{M}(\obf(M)) ] -
-      \Pr_{M\gets\mathcal{M}} [ A^{M}(S^M(\one^n)) ]
-    }\]
-    and the stronger definition requires that $$
-    $\Adv^\ssbvbb_\obf(A) \equiv$
-    \[\min_S \abs{
-      \Pr_{M\gets\mathcal{M}} [ A^{M}(\obf(M)) ] -
-      \Pr_{M\gets\mathcal{M}} [ A^{M}(S^M(\one^n)) ]
-    }\]
+    \textit{Weak definition}: $\forall\;A$ $\exists\;S :$
+    $\Adv^\sbvbb_{\mathcal{M},\obf,A,S} \equiv$
+    \[\abs{
+      \Pr_{M} [ A^{M}(\obf(M)) ] -
+      \Pr_{M} [ A^{M}(S^M(\one^n)) ]
+    }=\negl(n).\]
+
+    \textit{Strong definition}: $\exists\;S :$ $\forall\;A$
+    $\Adv^\ssbvbb_{\mathcal{M},\obf,A,S} \equiv$
+    \[\abs{
+      \Pr_{M} [ A(M,\obf(M)) ] -
+      \Pr_{M} [ A(M,S^M(\one^n)) ]
+    }=\negl(n).\]
 
   \subsection{Correctness}
 
@@ -167,12 +169,11 @@
       \item
         \textit{Perfect functionality}:
         $M$ and $\obf(M)$ compute precisely the same function.
-        \cite{onThe(Im)possibility}
-        \[ \forall\;M\;\forall\;x\;(\obf(M))(x) = M(x) \]
+        \[ \forall\;M,x\;(\obf(M))(x) = M(x) \]
 
       \item
         \textit{Approximate functionality}:
-        \[ \forall\;M\;\forall\;x\;\Pr_{\obf(M)}[(\obf(M))(x) = M(x)] \ge 1-\negl(\cdot) \;\footnotemark \]
+        \[ \forall\;M,x\;\Pr_{\obf(M)}[(\obf(M))(x) = M(x)] \ge 1-\negl(\cdot) \;\footnotemark \]
 
     \end{itemize}
 
@@ -201,7 +202,7 @@
     %
     \begin{align*}
       C_{\alpha,\beta}(x) & \equiv \begin{cases} \beta & x=\alpha \\ \zero^n  & \text{otherwise} \end{cases} \\
-      D_{\alpha, \beta}(C) & \equiv \begin{cases} 1 & C(\alpha) = \beta \\ 0 & \text{otherwise} \end{cases} \\
+      D_{\alpha, \beta}(C) & \equiv \begin{cases} \one & C(\alpha) = \beta \\ \zero & \text{otherwise} \end{cases} \\
       Z(\cdot) & \equiv \zero^n \\
       F_{\alpha, \beta} & \equiv C_{\alpha, \beta} \# D_{\alpha, \beta} \\
       G_{\alpha, \beta} & \equiv Z \# D_{\alpha, \beta} \;\;\;\footnotemark
@@ -223,18 +224,11 @@
     %
     \begin{align*}
       A(\obf(F_{\alpha,\beta})) & = D_{\alpha,\beta}(C_{\alpha,\beta}) = 1\\
-      A(\obf(G_{\alpha,\beta})) & = D_{\alpha,\beta}(Z) = 0 \;\;\footnotemark
+      A(\obf(G_{\alpha,\beta})) & = D_{\alpha,\beta}(Z) = 2^{-n}
     \end{align*}
-    \footnotetext{
-      Actually $2^{-n}$, but $0$ if we exclude the negligible-probability event $\beta=0$.
-    }
 
-    Therefore $\Adv^\vbb_\obf(A)$
-    \begin{tabbing}
-      \hspace{2em} \= $\ge \max(\;\;$ \= $\abs{ \Pr[ A(\obf(F_{\alpha,\beta})) ] - \Pr[ S^{F_{\alpha,\beta}}(1^n) ] }$\,, \\[5pt]
-                   \>                 \> $\abs{ \Pr[ A(\obf(G_{\alpha,\beta})) ] - \Pr[ S^{G_{\alpha,\beta}}(1^n) ] }$\;\;) \\[5pt]
-                   \> $\ge \frac{1}{2} - \negl(n)$ .
-    \end{tabbing}
+    Therefore either $\Adv^\vbb_{\obf,A,S,F}$ or $\Adv^\vbb_{\obf,A,S,G}$
+    exceeds $\frac{1}{2}-\negl(n)$ for all $S$.
     This violates the black-box property, contradicting the assumption that $\obf$ is an obfuscator. \qed
 
     \section{Circuit obfuscators do not exist}
@@ -244,7 +238,7 @@
     This is proven by demonstrating the existence of an \textit{unobfuscatable circuit ensemble}
     with the following properties:%
 
-    \begin{enumerate}
+    \begin{itemize}
 
       \item
         A circuit from the ensemble can be completely reconstructed given any equivalent circuit.
@@ -254,7 +248,7 @@
         This is shown via the existence of a function $\pi: \text{circuits}\to\bit^*$ such that $\pi(C)\cind U$
         given oracle access to $C$.
 
-    \end{enumerate}
+    \end{itemize}
 
     These two statements imply violation of the black-box property for any $\obf(C)$.
     If we take $P(C)$ to be a predicate such as ``the first bit $\pi(C)$'',
@@ -267,7 +261,31 @@
 
   \section{Point functions}
 
-    useless
+    The point function for a value $\alpha$ is defined as
+    \[ I_\alpha(x) \equiv \begin{cases} \one & x=\alpha \\ \zero & \text{otherwise} \end{cases} \]
+
+    This class of function is somewhat trivial but not inconsequential.
+    Password verification is the evaluation of a point function where $\alpha$ is the correct password,
+    and it is desirable for a password-based authentication system to obfuscate its verification
+    information to prevent recovery of users' credentials.
+
+    The common solution of applying a one-way hash function to the password prevents recovery of the
+    entire password, but it does not necessarily provide complete hiding of the preimage.
+    \cite{perfectlyOneWay} presents several constructions of a cryptographic primitive called a
+    \textit{perfectly one-way hash function}, consisting of a probabilistic hash $h$ and a verifier
+    $V$ such that $V(x, h(x))$ accepts for all possibilities of $h(x)$.
+    A perfectly one-way hash does provide point function obfuscation.
+
+  \section{Conclusion}
+
+    The most conclusive result in the area of obfuscation is the impossibility results by
+    \cite{onThe(Im)possibility}.
+
+    Point functions are the only area I have seen in which talk of obfuscation seems positive,
+    and even on that topic the literature is rife with doubt regarding restrictions on the
+    entropy of the function distribution and reliance on non-standard cryptographic assumptions.
+
+    Whether any feasible relaxations of obfuscation can be formulated is unknown.
 
   \bibliographystyle{amsalpha}
 
